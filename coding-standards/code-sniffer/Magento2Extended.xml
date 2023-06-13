@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<ruleset name="Magento2Extended">
+    <description>Magento Coding Standard Extended</description>
+
+    <rule ref="Magento2">
+        <exclude name="Magento2.Annotation.MethodAnnotationStructure"/>
+    </rule>
+</ruleset>

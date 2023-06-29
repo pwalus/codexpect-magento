@@ -117,3 +117,4 @@ atlassian*
 /mutagen.sh
 /lib/*
 auth.json
+.php-cs-fixer.cache

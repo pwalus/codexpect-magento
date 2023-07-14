@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Codexpect\IntegrationTests\Model\Configuration">
+        <arguments>
+            <argument name="params" xsi:type="array">
+                <item name="area" xsi:type="string">frontend</item>
+            </argument>
+        </arguments>
+    </virtualType>
+</config>

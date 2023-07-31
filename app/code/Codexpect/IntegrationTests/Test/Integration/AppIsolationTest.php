@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @magentoDbIsolation enabled
- * @magentoAppIsolation disabled
+ * @magentoAppIsolation enabled
  */
 class AppIsolationTest extends TestCase
 {

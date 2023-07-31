@@ -10,7 +10,7 @@ use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @magentoDbIsolation disabled
+ * @magentoDbIsolation enabled
  */
 class DbIsolationTest extends TestCase
 {

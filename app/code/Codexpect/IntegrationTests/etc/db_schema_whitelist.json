@@ -1,0 +1,14 @@
+{
+    "order_action_history": {
+        "column": {
+            "id": true,
+            "order_id": true,
+            "action": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ORDER_ACTION_HISTORY_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    }
+}

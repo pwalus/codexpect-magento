@@ -2,4 +2,8 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Codexpect\IntegrationTests\Api\Data\ActionHistoryInterface" type="Codexpect\IntegrationTests\Model\Data\ActionHistoryData"/>
     <preference for="Codexpect\IntegrationTests\Api\ActionHistoryRepositoryInterface" type="Codexpect\IntegrationTests\Model\ActionHistoryRepository"/>
+
+    <type name="Magento\Sales\Api\OrderManagementInterface">
+        <plugin name="save_action_history" type="Codexpect\IntegrationTests\Plugin\SaveActionHistory" sortOrder="0"/>
+    </type>
 </config>

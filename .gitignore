@@ -104,6 +104,8 @@ atlassian*
 #/lib
 /setup/*
 !/setup/config/
+!/setup/src/
+
 /.docker
 /pub
 /phpserver

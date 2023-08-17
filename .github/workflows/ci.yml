@@ -56,3 +56,30 @@ jobs:
       - name: Code sniffer
         run: /var/www/html/magento-coding-standards/vendor/bin/phpcs app/code/Codexpect --standard=coding-standards/code-sniffer/Magento2Extended.xml --extensions=php --ignore="*/Test/*" -p
 
+  mess-detector:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+      - name: Copy configuration
+        run: cp coding-standards/mess-detector/rulesets/*_custom.xml /var/www/html/magento-coding-standards/vendor/phpmd/phpmd/src/main/resources/rulesets/
+
+      - name: Mess detector
+        run: /var/www/html/magento-coding-standards/vendor/bin/phpmd app/code/Codexpect text cleancode,codesize,controversial,design,unusedcode,naming_custom --exclude */Test/*
+

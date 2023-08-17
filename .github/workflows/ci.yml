@@ -1,0 +1,29 @@
+name: Magento Workflow
+
+on:
+  push:
+    branches: [ "feature/ci-workflow" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction

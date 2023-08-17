@@ -5,29 +5,54 @@ on:
     branches: [ "feature/ci-workflow" ]
 
 jobs:
-  build:
+  compile:
     runs-on: ubuntu-latest
     container:
       image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
 
     steps:
-    - name: Git checkout
-      uses: actions/checkout@v3
+      - name: Git checkout
+        uses: actions/checkout@v3
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate
+      - name: Validate composer.json and composer.lock
+        run: composer validate
 
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
 
-    - name: Install dependencies
-      run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
 
-    - name: Compile Magento
-      run: bin/magento setup:di:compile --no-interaction
+      - name: Compile Magento
+        run: bin/magento setup:di:compile --no-interaction
+
+  code-sniffer:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+      - name: Code sniffer
+        run: /var/www/html/magento-coding-standards/vendor/bin/phpcs app/code/Codexpect --standard=coding-standards/code-sniffer/Magento2Extended.xml --extensions=php --ignore="*/Test/*" -p
+

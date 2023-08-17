@@ -1,8 +1,8 @@
 name: Adobe Commerce CI Workflow
 
 on:
-  push:
-    branches: [ "feature/ci-workflow" ]
+  pull_request:
+    branches: [ "feature/*", "release/*", "bugfix/*"]
 
 jobs:
   compile:

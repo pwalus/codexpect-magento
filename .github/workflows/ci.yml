@@ -11,7 +11,8 @@ jobs:
       image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Git checkout
+      uses: actions/checkout@v3
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -27,3 +28,6 @@ jobs:
 
     - name: Install dependencies
       run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+    - name: Compile Magento
+      run: bin/magento setup:di:compile --no-interaction

@@ -2,6 +2,10 @@ name: Adobe Commerce CI Workflow
 
 on:
   pull_request:
+    branches:
+      -  'feature/**'
+      -  'bugfix/**'
+      -  'release/**'
     types:
       - opened
       - synchronize

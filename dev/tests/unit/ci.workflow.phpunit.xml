@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+         colors="true"
+         columns="max"
+         beStrictAboutTestsThatDoNotTestAnything="false"
+         bootstrap="./framework/bootstrap.php">
+    <coverage>
+        <include>
+            <directory suffix=".php">../../../app/code/Codexpect/*</directory>
+        </include>
+    </coverage>
+    <testsuites>
+        <testsuite name="Magento_Unit_Tests_App_Code">
+            <directory>../../../app/code/Codexpect/*/Test/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <includePath>.</includePath>
+        <ini name="memory_limit" value="-1"/>
+        <ini name="date.timezone" value="Europe/Warsaw"/>
+        <ini name="xdebug.max_nesting_level" value="200"/>
+    </php>
+    <listeners>
+        <listener class="Magento\Framework\TestFramework\Unit\Listener\ReplaceObjectManager"/>
+    </listeners>
+<!--    <extensions>-->
+<!--        <extension class="Qameta\Allure\PHPUnit\AllureExtension">-->
+            <!-- Optional arguments block; omit it if you want to use default values -->
+<!--            <arguments>-->
+                <!-- Path to config file (default is config/allure.config.php) -->
+<!--                <string>allure/allure.config.php</string>-->
+<!--            </arguments>-->
+<!--        </extension>-->
+<!--    </extensions>-->
+</phpunit>

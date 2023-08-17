@@ -1,4 +1,4 @@
-name: Adobe Commerce (Magento 2) CI Workflow
+name: Adobe Commerce CI Workflow
 
 on:
   push:

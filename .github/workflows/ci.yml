@@ -106,5 +106,14 @@ jobs:
       - name: Unit tests
         run: ./vendor/bin/phpunit -c dev/tests/unit/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose --log-junit ./test-reports/junit.xml
 
+      - name: Test Reporting
+        uses: phoenix-actions/test-reporting@v12
+        if: success() || failure()
+        with:
+          name: JEST Tests
+          path: ./test-reports/junit.xml
+          reporter: jest-junit
+
+
 
 

@@ -1,0 +1,178 @@
+name: Adobe Commerce CI Workflow
+
+on:
+  pull_request:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+      - name: Compile Magento
+        run: bin/magento setup:di:compile --no-interaction
+
+  code-sniffer:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+      - name: Code sniffer
+        run: /var/www/html/magento-coding-standards/vendor/bin/phpcs app/code/Codexpect --standard=coding-standards/code-sniffer/Magento2Extended.xml --extensions=php --ignore="*/Test/*" -p --report=csv --report-file=code_sniffer_summary.csv
+
+      - name: Code sniffer parse results
+        if: always()
+        id: code_sniffer
+        run: |
+          summary=$(sed 's/codexpect-magento\/codexpect-magento\///g' code_sniffer_summary.csv)
+          echo 'summary<<EOF' >> $GITHUB_OUTPUT
+          echo "summary=$summary" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+      - name: Code sniffer render table
+        id: csv-table-output
+        uses: petems/csv-to-md-table-action@v3.0.0
+        if: always()
+        with:
+          csvinput: ${{ steps.code_sniffer.outputs.summary }}
+
+      - name: Code sniffer reporting summary
+        if: always()
+        run: |
+          echo "${{steps.csv-table-output.outputs.markdown-table}}" >> $GITHUB_STEP_SUMMARY
+
+  mess-detector:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+      - name: Copy configuration
+        run: cp coding-standards/mess-detector/*_custom.xml /var/www/html/magento-coding-standards/vendor/phpmd/phpmd/src/main/resources/rulesets/
+
+      - name: Mess detector
+        run: /var/www/html/magento-coding-standards/vendor/bin/phpmd app/code/Codexpect text cleancode,codesize,controversial,design,unusedcode,naming_custom -v --exclude */Test/* --reportfile mess_detector_summary.txt
+      - name: Mess detector reporting
+        if: always()
+        run: sed 's/codexpect-magento\/codexpect-magento\///g' mess_detector_summary.txt >> $GITHUB_STEP_SUMMARY
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+      - name: Unit tests
+        run: cd dev/tests/unit && php -dmemory_limit=-1 ../../../vendor/bin/phpunit -c ci.workflow.phpunit.xml --testdox --verbose --testdox-text test_summary.txt
+
+      - name: Test reporting
+        if: always()
+        run: cat dev/tests/unit/test_summary.txt >> $GITHUB_STEP_SUMMARY
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: 'password'
+          MYSQL_DATABASE: 'magento_integration_tests'
+      opensearch:
+        image: patrykwalusvaimo/opensearch:2.4.0
+        env:
+          OPENSEARCH_JAVA_OPTS: '-Xms64m -Xmx512m'
+      rabbitmq:
+        image: rabbitmq:3.9
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+      - name: Integration tests
+        run: cd dev/tests/integration && php -dmemory_limit=-1 ../../../vendor/bin/phpunit -c ci.workflow.phpunit.xml --testsuite IntegrationTests --testdox --verbose --testdox-text test_summary.txt
+
+      - name: Test reporting
+        if: always()
+        run: cat dev/tests/integration/test_summary.txt >> $GITHUB_STEP_SUMMARY
+
+

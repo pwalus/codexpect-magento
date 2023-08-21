@@ -24,6 +24,14 @@
             <directory suffix="Test.php">../../../app/code/Codexpect/*/Test/Integration</directory>
         </testsuite>
     </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../../../app/code/Codexpect/*</directory>
+            <exclude>
+                <directory>../../../app/code/Codexpect/*/Test</directory>
+            </exclude>
+        </whitelist>
+    </filter>
     <php>
         <includePath>.</includePath>
         <includePath>testsuite</includePath>

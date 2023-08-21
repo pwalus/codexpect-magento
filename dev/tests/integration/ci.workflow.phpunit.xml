@@ -20,10 +20,18 @@
         </include>
     </coverage>
     <testsuites>
-        <testsuite name="Magento Integration Tests">
+        <testsuite name="IntegrationTests">
             <directory suffix="Test.php">../../../app/code/Codexpect/*/Test/Integration</directory>
         </testsuite>
     </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../../../app/code/Codexpect/*</directory>
+            <exclude>
+                <directory>../../../app/code/Codexpect/*/Test</directory>
+            </exclude>
+        </whitelist>
+    </filter>
     <php>
         <includePath>.</includePath>
         <includePath>testsuite</includePath>
@@ -74,9 +82,9 @@
     </listeners>
 <!--    <extensions>-->
 <!--        <extension class="Qameta\Allure\PHPUnit\AllureExtension">-->
-             Optional arguments block; omit it if you want to use default values
+<!--             Optional arguments block; omit it if you want to use default values-->
 <!--            <arguments>-->
-                 Path to config file (default is config/allure.config.php)
+<!--                 Path to config file (default is config/allure.config.php)-->
 <!--                <string>allure/allure.config.php</string>-->
 <!--            </arguments>-->
 <!--        </extension>-->

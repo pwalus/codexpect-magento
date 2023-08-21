@@ -169,7 +169,7 @@ jobs:
         run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
 
       - name: Integration tests
-        run: ./vendor/bin/phpunit -c dev/tests/integration/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose --testdox-text test_summary.xml
+        run: cd dev/tests/integration && php -dmemory_limit=-1 ../../../vendor/bin/phpunit -c ci.workflow.phpunit.xml --testsuite IntegrationTests --testdox --verbose --testdox-text test_summary.xml
 
       - name: Test reporting
         if: always()

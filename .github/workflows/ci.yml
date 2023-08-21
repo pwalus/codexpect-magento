@@ -128,11 +128,9 @@ jobs:
         run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
 
       - name: Unit tests
-        run: |
-          ./vendor/bin/phpunit -c dev/tests/unit/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose | tee test_summary.xml
-          exit_code=$?
-          exit $exit_code
+        run: ./vendor/bin/phpunit -c dev/tests/unit/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose --testdox-html test_summary.xml
 
       - name: Test reporting
         if: always()
         run: cat test_summary.xml >> $GITHUB_STEP_SUMMARY
+

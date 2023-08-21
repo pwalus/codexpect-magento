@@ -53,7 +53,28 @@ jobs:
         run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
 
       - name: Code sniffer
-        run: /var/www/html/magento-coding-standards/vendor/bin/phpcs app/code/Codexpect --standard=coding-standards/code-sniffer/Magento2Extended.xml --extensions=php --ignore="*/Test/*" -p
+        run: /var/www/html/magento-coding-standards/vendor/bin/phpcs app/code/Codexpect --standard=coding-standards/code-sniffer/Magento2Extended.xml --extensions=php --ignore="*/Test/*" -p --report=csv --report-file=code_sniffer_summary.csv
+
+      - name: Code sniffer parse results
+        if: always()
+        id: code_sniffer
+        run: |
+          summary=$(sed 's/codexpect-magento\/codexpect-magento\///g' code_sniffer_summary.csv)
+          echo 'summary<<EOF' >> $GITHUB_OUTPUT
+          echo "summary=$summary" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+      - name: Code sniffer render table
+        id: csv-table-output
+        uses: petems/csv-to-md-table-action@v3.0.0
+        if: always()
+        with:
+          csvinput: ${{ steps.code_sniffer.outputs.summary }}
+
+      - name: Code sniffer reporting summary
+        if: always()
+        run: |
+          echo "${{steps.csv-table-output.outputs.markdown-table}}" >> $GITHUB_STEP_SUMMARY
 
   mess-detector:
     runs-on: ubuntu-latest
@@ -80,7 +101,10 @@ jobs:
         run: cp coding-standards/mess-detector/*_custom.xml /var/www/html/magento-coding-standards/vendor/phpmd/phpmd/src/main/resources/rulesets/
 
       - name: Mess detector
-        run: /var/www/html/magento-coding-standards/vendor/bin/phpmd app/code/Codexpect text cleancode,codesize,controversial,design,unusedcode,naming_custom --exclude */Test/*
+        run: /var/www/html/magento-coding-standards/vendor/bin/phpmd app/code/Codexpect text cleancode,codesize,controversial,design,unusedcode,naming_custom -v --exclude */Test/* --reportfile mess_detector_summary.txt
+      - name: Mess detector reporting
+        if: always()
+        run: sed 's/codexpect-magento\/codexpect-magento\///g' mess_detector_summary.txt >> $GITHUB_STEP_SUMMARY
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -104,16 +128,11 @@ jobs:
         run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
 
       - name: Unit tests
-        run: ./vendor/bin/phpunit -c dev/tests/unit/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose --log-junit ./test-reports/junit.xml
+        run: |
+          ./vendor/bin/phpunit -c dev/tests/unit/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose | tee test_summary.xml
+          exit_code=$?
+          exit $exit_code
 
-      - name: Test Reporting
-        uses: phoenix-actions/test-reporting@v12
-        if: success() || failure()
-        with:
-          name: JEST Tests
-          path: ./test-reports/junit.xml
-          reporter: jest-junit
-
-
-
-
+      - name: Test reporting
+        if: always()
+        run: cat test_summary.xml >> $GITHUB_STEP_SUMMARY

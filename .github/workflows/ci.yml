@@ -128,9 +128,51 @@ jobs:
         run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
 
       - name: Unit tests
-        run: ./vendor/bin/phpunit -c dev/tests/unit/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose --testdox-html test_summary.xml
+        run: ./vendor/bin/phpunit -c dev/tests/unit/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose --testdox-text test_summary.xml
 
       - name: Test reporting
         if: always()
         run: cat test_summary.xml >> $GITHUB_STEP_SUMMARY
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: patrykwalusvaimo/magento-coding-standards:8.1.14-cli
+
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: 'password'
+          MYSQL_DATABASE: 'magento_integration_tests'
+      opensearch:
+        image: patrykwalusvaimo/opensearch:2.4.0
+        env:
+          OPENSEARCH_JAVA_OPTS: '-Xms64m -Xmx512m'
+      rabbitmq:
+        image: rabbitmq:3.9
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: COMPOSER_AUTH=${{secrets.COMPOSER_AUTH}} composer install --no-interaction
+
+      - name: Integration tests
+        run: ./vendor/bin/phpunit -c dev/tests/integration/ci.workflow.phpunit.xml --coverage-text --colors=never --testdox --verbose --testdox-text test_summary.xml
+
+      - name: Test reporting
+        if: always()
+        run: cat test_summary.xml >> $GITHUB_STEP_SUMMARY
+
 

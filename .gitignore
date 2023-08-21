@@ -100,7 +100,8 @@ atlassian*
 /.user.ini
 
 # gitignore tmp directories
-/dev
+/dev/*
+!/dev/tests/integration/_files/Magento
 #/lib
 /setup/*
 !/setup/config/
